@@ -23,3 +23,4 @@ Todos:
 * Connect to luis to make the bot more chatty and less botty
 * use build and project names instead of ids
 * implement moar commands
+* fix a bug when you address the bot directly in slack instead of in the channel
