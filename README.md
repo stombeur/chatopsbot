@@ -20,12 +20,12 @@ Currently supported commands for the bot:
 ####build
 |switch|description|
 |---|---|
-  |--id            |the build id or name  
-  |--start         |start a build (the default switch if none is specified)  
-  |--list          |list all builds for a project  
-  |--cancel        |cancel all builds  
-  |--project       |the project id or name  
-  |value pos. 0    |pass the build id or name as the first parameter  
+  |--id            |the build id or name |
+  |--start         |start a build (the default switch if none is specified)  |
+  |--list          |list all builds for a project  |
+  |--cancel        |cancel all builds  |
+  |--project       |the project id or name | 
+  |value pos. 0    |pass the build id or name as the first parameter  |
 
 Examples: 
 
