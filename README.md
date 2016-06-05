@@ -10,22 +10,20 @@ Currently supported commands for the bot:
 
 * help - list the available commands
 * help command - more info on the command
-*
 * state - some settings that the bot remembers for you during your conversation and some info about your conversation
 * alias - Create an alias for another command. Run an aliased command. List all known aliases.
 * project - List all available vsts projects. Choose a default project.
 * build - Start or Cancel a vsts build. List all available vsts builds.
 
-
 ####build
 |switch|description|
 |---|---|
-  |--id            |the build id or name |
-  |--start         |start a build (the default switch if none is specified)  |
-  |--list          |list all builds for a project  |
-  |--cancel        |cancel all builds  |
-  |--project       |the project id or name | 
-  |value pos. 0    |pass the build id or name as the first parameter  |
+|--id            |the build id or name |
+|--start         |start a build (the default switch if none is specified)  |
+|--list          |list all builds for a project  |
+|--cancel        |cancel all builds  |
+|--project       |the project id or name | 
+|value pos. 0    |pass the build id or name as the first parameter  |
 
 Examples: 
 
@@ -35,6 +33,42 @@ build 42
 build --cancel 42
 build --project abc --id 42
 ```
+
+####project
+|switch|description|
+|---|---|
+|--list |list available projects (the default switch if none is specified)|
+|--default |set the projectid as default|
+|value pos. 0 |pass the project id or name as the first parameter|
+
+Examples: 
+
+```
+project --list
+project --default abc
+```
+
+####alias
+|switch|description|
+|---|---|
+|--name          |the name of the alias
+|--command       |the aliased command
+|--create        |create a new alias or update an existing one (this is the default switch if none is specified). Requires you to also specify a name and command
+|--run           |run an aliased command. You can also run the alias by just passing the alias without 'alias --run'. The command 'alias --run <aliasName>' is equivalent with the command '<aliasName>'
+|--list          |list all known aliases
+|--clear         |clear all known aliases
+|value pos. 0    |the aliased command can also be passed without the --command
+                  switch
+
+Examples:
+
+````
+alias --name lp --command "project --list"
+alias --run --name lp
+lp
+alias --list
+````
+
 
 Todos:
 
