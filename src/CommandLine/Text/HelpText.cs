@@ -40,7 +40,7 @@ namespace CommandLine.Text
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CommandLine.Text.HelpText"/> class 
+        /// Initializes a new instance of the <see cref="CommandLine.Text.HelpText"/> class
         /// specifying the sentence builder.
         /// </summary>
         /// <param name="sentenceBuilder">
@@ -197,13 +197,14 @@ namespace CommandLine.Text
         public static HelpText AutoBuild<T>(
             ParserResult<T> parserResult,
             Func<HelpText, HelpText> onError,
-            Func<Example, Example> onExample, 
+            Func<Example, Example> onExample,
             bool verbsIndex = false)
         {
-            var auto = new HelpText {
-                Heading = HeadingInfo.Default,
-                Copyright = CopyrightInfo.Default,
-                AdditionalNewLineAfterOption = true,
+            var auto = new HelpText
+            {
+                Heading = "", //HeadingInfo.Default,
+                Copyright = "",// CopyrightInfo.Default,
+                AdditionalNewLineAfterOption = false,
                 AddDashesToOption = !verbsIndex
             };
 
@@ -223,16 +224,16 @@ namespace CommandLine.Text
             var usageAttr = ReflectionHelper.GetAttribute<AssemblyUsageAttribute>();
             var usageLines = HelpText.RenderUsageTextAsLines(parserResult, onExample).ToMaybe();
 
-            if (usageAttr.IsJust() || usageLines.IsJust())
-            {
-                var heading = auto.SentenceBuilder.UsageHeadingText();
-                if (heading.Length > 0)
-                    auto.AddPreOptionsLine(heading);
-            }
+            //if (usageAttr.IsJust() || usageLines.IsJust())
+            //{
+            //    var heading = auto.SentenceBuilder.UsageHeadingText();
+            //    if (heading.Length > 0)
+            //        auto.AddPreOptionsLine(heading);
+            //}
 
             usageAttr.Do(
                 usage => usage.AddToHelpText(auto, true));
-            
+
             usageLines.Do(
                 lines => auto.AddPreOptionsLines(lines));
 
@@ -419,7 +420,7 @@ namespace CommandLine.Text
         /// </summary>
         /// <param name="maximumLength">The maximum length of the help screen.</param>
         /// <param name="result">A parsing computation result.</param>
-        /// <exception cref="System.ArgumentNullException">Thrown when parameter <paramref name="result"/> is null.</exception>    
+        /// <exception cref="System.ArgumentNullException">Thrown when parameter <paramref name="result"/> is null.</exception>
         public HelpText AddOptions<T>(int maximumLength, ParserResult<T> result)
         {
             if (result == null) throw new ArgumentNullException("result");
@@ -488,7 +489,7 @@ namespace CommandLine.Text
             if (meaningfulErrors.Empty())
                 yield break;
 
-            foreach(var error in  meaningfulErrors
+            foreach (var error in meaningfulErrors
                 .Where(e => e.Tag != ErrorType.MutuallyExclusiveSetError))
             {
                 var line = new StringBuilder(indent.Spaces())
@@ -496,7 +497,7 @@ namespace CommandLine.Text
                 yield return line.ToString();
             }
 
-            var mutuallyErrs = 
+            var mutuallyErrs =
                 formatMutuallyExclusiveSetErrors(
                     meaningfulErrors.OfType<MutuallyExclusiveSetError>());
             if (mutuallyErrs.Length > 0)
@@ -559,16 +560,18 @@ namespace CommandLine.Text
                 var styles = example.GetFormatStylesOrDefault();
                 foreach (var s in styles)
                 {
-                    var commandLine = new StringBuilder(2.Spaces())
-                        .Append(appAlias)
-                        .Append(' ')
+                    var commandLine = new StringBuilder()
+                        //.Append(appAlias)
+                        //.Append(' ')
+                        .Append("```")
                         .Append(Parser.Default.FormatCommandLine(example.Sample,
                             config =>
                             {
                                 config.PreferShortName = s.PreferShortName;
                                 config.GroupSwitches = s.GroupSwitches;
                                 config.UseEqualToken = s.UseEqualToken;
-                            }));
+                            }))
+                        .Append("```");
                     yield return commandLine.ToString();
                 }
             }
@@ -637,7 +640,7 @@ namespace CommandLine.Text
             var specs = type.GetSpecifications(Specification.FromProperty);
             var optionSpecs = specs
                 .OfType<OptionSpecification>()
-                .Concat(new[] { MakeHelpEntry(), MakeVersionEntry() });
+                ;//.Concat(new[] { MakeHelpEntry() /*, MakeVersionEntry()*/ });
             var valueSpecs = specs
                 .OfType<ValueSpecification>()
                 .OrderBy(v => v.Index);
@@ -664,13 +667,13 @@ namespace CommandLine.Text
         private IEnumerable<Specification> AdaptVerbsToSpecifications(IEnumerable<Type> types)
         {
             return (from verbTuple in Verb.SelectFromTypes(types)
-                    select
-                        OptionSpecification.NewSwitch(
-                            string.Empty,
-                            verbTuple.Item1.Name,
-                            false,
-                            verbTuple.Item1.HelpText,
-                            string.Empty)).Concat(new[] { MakeHelpEntry(), MakeVersionEntry() });
+                select
+                    OptionSpecification.NewSwitch(
+                        string.Empty,
+                        verbTuple.Item1.Name,
+                        false,
+                        verbTuple.Item1.HelpText,
+                        string.Empty)); //.Concat(new[] { MakeHelpEntry(), /*MakeVersionEntry()*/ });
         }
 
         private HelpText AddOptionsImpl(
@@ -828,13 +831,13 @@ namespace CommandLine.Text
         {
             return specifications.Aggregate(0,
                 (length, spec) =>
-                    {
-                        var specLength = spec.Tag == SpecificationType.Option
-                            ? GetMaxOptionLength((OptionSpecification)spec)
-                            : GetMaxValueLength((ValueSpecification)spec);
+                {
+                    var specLength = spec.Tag == SpecificationType.Option
+                        ? GetMaxOptionLength((OptionSpecification)spec)
+                        : GetMaxValueLength((ValueSpecification)spec);
 
-                        return Math.Max(length, specLength);
-                    });
+                    return Math.Max(length, specLength);
+                });
         }
 
 

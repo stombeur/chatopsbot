@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CommandLine.Infrastructure
 {
-    static class StringExtensions
+    public static class StringExtensions
     {
         public static string ToOneCharString(this char c)
         {

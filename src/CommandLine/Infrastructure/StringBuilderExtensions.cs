@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CommandLine.Infrastructure
 {
-    static class StringBuilderExtensions
+    public static class StringBuilderExtensions
     {
         public static StringBuilder AppendWhen(this StringBuilder builder, bool condition, params string[] values)
         {

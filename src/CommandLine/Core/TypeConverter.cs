@@ -53,19 +53,25 @@ namespace CommandLine.Core
 
                     Func<Type> getUnderlyingType =
                         () =>
-                            isFsOption
-                                ? FSharpOptionHelper.GetUnderlyingType(conversionType)
-                                : Nullable.GetUnderlyingType(conversionType);
+                            //isFsOption
+                            //    ? FSharpOptionHelper.GetUnderlyingType(conversionType)
+                            //    : Nullable.GetUnderlyingType(conversionType);
+                            Nullable.GetUnderlyingType(conversionType);
 
                     var type = getUnderlyingType() ?? conversionType;
 
                     Func<object> withValue =
                         () =>
-                            isFsOption
-                                ? FSharpOptionHelper.Some(type, Convert.ChangeType(value, type, conversionCulture))
-                                : Convert.ChangeType(value, type, conversionCulture);
+                            //isFsOption
+                                //? FSharpOptionHelper.Some(type, Convert.ChangeType(value, type, conversionCulture))
+                                //: Convert.ChangeType(value, type, conversionCulture);
+                    Convert.ChangeType(value, type, conversionCulture);
 
-                    Func<object> empty = () => isFsOption ? FSharpOptionHelper.None(type) : null;
+                    Func<object> empty = () =>
+                        //isFsOption 
+                        //? FSharpOptionHelper.None(type) 
+                        //: null;
+                        null;
 
                     return (value == null) ? empty() : withValue();
                 };

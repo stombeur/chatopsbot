@@ -220,19 +220,19 @@ namespace CommandLine
 
         private static object NormalizeValue(this object value)
         {
-            if (value != null
-                && ReflectionHelper.IsFSharpOptionType(value.GetType())
-                && FSharpOptionHelper.IsSome(value))
-            {
-                return FSharpOptionHelper.ValueOf(value);
-            }
+            //if (value != null
+            //    && ReflectionHelper.IsFSharpOptionType(value.GetType())
+            //    && FSharpOptionHelper.IsSome(value))
+            //{
+            //    return FSharpOptionHelper.ValueOf(value);
+            //}
             return value;
         }
 
         private static bool IsEmpty(this object value)
         {
             if (value == null) return true;
-            if (ReflectionHelper.IsFSharpOptionType(value.GetType()) && !FSharpOptionHelper.IsSome(value)) return true;
+            //if (ReflectionHelper.IsFSharpOptionType(value.GetType()) && !FSharpOptionHelper.IsSome(value)) return true;
             if (value is ValueType && value.Equals(value.GetType().GetDefaultValue())) return true;
             if (value is string && ((string)value).Length == 0) return true;
             if (value is IEnumerable && !((IEnumerable)value).GetEnumerator().MoveNext()) return true;
