@@ -9,17 +9,16 @@ Follow the steps in [Microsoft Bot Connector - Getting Started](http://docs.botf
 Currently supported commands for the bot:
 
 * help - list the available commands
-* whoami - some info on you in the current channel (for debugging)
-* state - some settings that the bot remembers for you during your conversation (currently only the selected project id)
-* list projects - list all the VSTS projects you can access
-* set project projectid - select that project to work with
-* list builds (projectid) - list all available builds in that project
-* list builds - list all available builds in the project in state
-* queue build (buildid) - queue a build in the current project
-* queue build (buildid) (projectid) - queue q build in that project
+* help command - more info on the command
+*
+* state - some settings that the bot remembers for you during your conversation and some info about your conversation
+* alias - Create an alias for another command. Run an aliased command. List all known aliases.
+* project - List all available vsts projects. Choose a default project.
+* build - Start or Cancel a vsts build. List all available vsts builds.
 
 Todos:
 
-* Connect to luis to make the bot more chatty and less botty
+* ~~Connect to luis to make the bot more chatty and less botty~~ Tried it and the language is too specific for luis.
 * use build and project names instead of ids
 * implement moar commands
+* ~~improve the command parsing~~ Now using the [Commandline](https://github.com/gsscoder/commandline) library
