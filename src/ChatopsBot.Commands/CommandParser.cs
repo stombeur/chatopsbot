@@ -13,16 +13,31 @@ namespace ChatopsBot.Commands
 {
     public class CommandParser
     {
+        public static IEnumerable<string> SplitCommandLine(string commandLine)
+        {
+            bool inQuotes = false;
+
+            return commandLine.Split(c =>
+            {
+                if (c == '\"')
+                    inQuotes = !inQuotes;
+
+                return !inQuotes && c == ' ';
+            })
+                              .Select(arg => arg.Trim().TrimMatchingQuotes('\"'))
+                              .Where(arg => !string.IsNullOrEmpty(arg));
+        }
+
         public static Command ParseCommand(string textToParse)
         {
-            var args = textToParse.Split(new[] { ' ' }, StringSplitOptions.None);
+            var args = SplitCommandLine(textToParse); //textToParse.Split(new[] { ' ' }, StringSplitOptions.None);
             var helpString = new StringBuilder();
             var parser = new Parser(config => config.HelpWriter = new StringWriter(helpString));
 
             var result = parser
                 .ParseArguments
-                <WhoamiCommand, WhoamiCommand2, QueueCommand, ListBuildCommand, ListProjectCommand, SetAliasCommand,
-                    RunAliasCommand, SetStateCommand, ListStateCommand, CancelBuildCommand>(args)
+                <ProjectCommand, AliasCommand,
+                     StateCommand, BuildCommand>(args)
                 .MapResult(
                     (Command opts) => opts,
                     errs => new Command() {ParsingSuccess = false, Output = new List<string>() { helpString.ToString() } });
@@ -43,37 +58,5 @@ namespace ChatopsBot.Commands
             return result;
         }
 
-        public static Command ParseCommand(string[] args)
-        {
-            var helpString = new StringBuilder();
-            var parser = new Parser(config => config.HelpWriter = new StringWriter(helpString));
-            Command command = null;
-            IEnumerable<Error> errors = null;
-
-            var result = parser
-                .ParseArguments
-                <WhoamiCommand, WhoamiCommand2, QueueCommand, ListBuildCommand, ListProjectCommand, SetAliasCommand,
-                    RunAliasCommand, SetStateCommand, ListStateCommand, CancelBuildCommand>(args)
-                .WithParsed(options => command = options as Command)
-                .WithNotParsed(e => errors = e);
-
-            if (result.Tag == ParserResultType.NotParsed)
-            {
-                command = new Command() {ParsingSuccess = false, Output = new List<string>() {HelpText.AutoBuild(result)} };
-
-                var helpText = HelpText.AutoBuild(result);
-                helpText.Copyright = "";
-                helpText.Heading = "";
-                helpText.AdditionalNewLineAfterOption = false;
-
-                //helpText = helpText.AddOptions(result).AddVerbs(typeof(Command).Assembly.GetTypes().Where(t => t.GetCustomAttributes(typeof(VerbAttribute), true).Length > 0).ToArray());
-
-                command.Output = new List<string>() { helpText.ToString() };
-            }
-            command.Args = args;
-            command.Input = string.Join(" ", args);
-
-            return command;
-        }
     }
 }

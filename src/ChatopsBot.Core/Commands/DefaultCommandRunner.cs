@@ -27,81 +27,94 @@ namespace ChatopsBot.Core.Commands
             return await BotCommandRunner.RunCommand((dynamic)command, message, state);
         }
 
-        public static async Task<Command> RunCommand(RunAliasCommand command, MessageMeta message, BuildBotState state)
+        public static async Task<Command> RunCommand(AliasCommand command, MessageMeta message, BuildBotState state)
 
         {
-            var aliasName = command.Namepos ?? command.Name;
-            var alias = state.Aliases?.FirstOrDefault(a => a.Name.ToLower() == aliasName);
-            if (alias == null)
+            if (!command.Validate()) return command;
+
+            try
             {
-                command.Output.Add($"could not find alias '{aliasName}'");
-                return command;
+                if (command.Create)
+                {
+                    command.Title += "-create";
+
+                    var commandText = command.Command ?? string.Join(" ", command.CommandSeq);
+                    if (commandText.StartsWith("\"") && commandText.EndsWith("\""))
+                    {
+                        commandText = commandText.Substring(1, commandText.Length - 2);
+                    }
+
+                    if (state.Aliases == null) state.Aliases = new List<CommandAlias>();
+                    var existing =
+                        state.Aliases.FirstOrDefault(
+                            a => String.Equals(a.Name, command.Name, StringComparison.CurrentCultureIgnoreCase));
+                    if (existing != null)
+                    {
+                        existing.Command = commandText;
+                        command.Output.Add($"replaced alias with name '{command.Name}' for command '{commandText}'");
+                    }
+                    else
+                    {
+                        state.Aliases.Add(new CommandAlias() {Name = command.Name, Command = commandText});
+                        command.Output.Add($"created alias with name '{command.Name}' for command '{commandText}'");
+                    }
+
+                    command.ExecutingSuccess = true;
+
+
+                }
+                else if (command.Run)
+                {
+                    command.Title += "-run";
+                    var aliasName = command.Name;
+                    var alias = state.Aliases?.FirstOrDefault(a => a.Name.ToLower() == aliasName);
+                    if (alias == null)
+                    {
+                        command.Output.Add($"could not find alias '{aliasName}'");
+                        return command;
+                    }
+
+                    var commandToRun = ParseCommand(alias.Command);
+                    if (commandToRun.ParsingSuccess) return await RunCommand((dynamic) commandToRun, message, state);
+
+                    return await Task.FromResult((Command) commandToRun);
+                }
+                else if (command.List)
+                {
+                    command.Title += "-list";
+                    command.Output.Add($"known aliases:");
+                    if (state.Aliases != null)
+                    {
+                        foreach (var a in state.Aliases)
+                        {
+                            command.Output.Add($"   {a.Name} = {a.Command}");
+                        }
+                    }
+                    else if (state.Aliases == null || state.Aliases.Count == 0)
+                        command.Output.Add($"   none");
+
+
+                }
+                else if (command.Clear)
+                {
+                    command.Title += "-clear";
+                    command.Output.Add($"removing all known aliases");
+                    state.Aliases = new List<CommandAlias>();
+                    command.Output.Add($"done - all clear!");
+
+                }
+            }
+            catch (Exception ex)
+            {
+                command.Output.Add("   there was an ERROR - " + ex.Message);
             }
 
-            var commandToRun = ParseCommand(alias.Command);
-            if (commandToRun.ParsingSuccess) return await RunCommand((dynamic)commandToRun, message, state);
-            return commandToRun;
+            return await Task.FromResult((Command)command);
         }
 
         public static async Task<Command> RunCommand(VstsCommand command, MessageMeta message, BuildBotState state)
         {
             return await VstsCommandRunner.RunCommand((dynamic)command, message, state);
         }
-    }
-
-    public static class CommandExtensions
-    {
-        public static async Task<Command> AndTryAliasIfParsingUnsuccessfull(this Task<Command> commandTask, MessageMeta message, BuildBotState state)
-        {
-            var command = await commandTask;
-
-            if (command.ParsingSuccess) return command;
-
-            var alias =
-                state.Aliases.FirstOrDefault(
-                    a => a.Name.Equals(command.Input.Trim(), StringComparison.CurrentCultureIgnoreCase));
-            if (alias != null)
-            {
-                var command2 = DefaultCommandRunner.ParseCommand("run-alias " + alias.Name);
-                if (command2.ParsingSuccess)
-                    command2 = await DefaultCommandRunner.RunCommand((dynamic) command2, message, state);
-                if (command2.ExecutingSuccess) return command2;
-                else
-                {
-                    command.Output.Add($"   tried running the command as alias '{alias.Name}'");
-                    command.Output.AddRange(command2.Output.Select(l => "   " + l));
-                }
-            }
-
-            return command;
-        }
-
-        public static async Task<Command> AndRunCommandIfParsingSuccessfull(this Command command, MessageMeta message,
-            BuildBotState state)
-        {
-            if (command.ParsingSuccess)
-            {
-                return await DefaultCommandRunner.RunCommand((dynamic)command, message, state);
-            }
-            return command;
-        }
-
-        public static async Task<Command> AndFormatHelpIfParsingUnsuccessfull(this Task<Command> commandTask, MessageMeta meta,
-            BuildBotState state)
-        {
-            var command = await commandTask;
-
-            if (command.ParsingSuccess) return command;
-
-            command.IsHelp = meta.IsHelp;
-            command.Title = command.IsHelp ? "Help" : "Error";
-            if (!command.IsHelp)
-                command.Output.Add($"error while parsing >>{command.Input}<<"); //and botName={botName} and original text >>{message.Text}<< and textToParse >>{textToParse}<<");
-            command.Output.Add($"{Constants.EnvironmentNewLine}{Constants.EnvironmentNewLine}help           display a list of commands");
-            command.Output.Add($"help xyz       display detailed info for the command xyz");
-
-            return command;
-        }
-
     }
 }

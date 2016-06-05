@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using CommandLine;
 using CommandLine.Text;
 
@@ -10,202 +11,237 @@ namespace ChatopsBot.Commands
 
         public bool ParsingSuccess { get; set; } = true;
         public bool ExecutingSuccess { get; set; } = false;
-        public string[] Args { get; set; }
+        public IEnumerable<string> Args { get; set; }
         public string Input { get; set; }
         public List<string> Output { get; set; } = new List<string>();
-        public virtual string Title { get; set; }
+        public string Title { get; set; }
         public bool IsHelp { get; set; } = false;
+        public virtual bool Validate()
+        {
+            return false;
+        }
     }
 
     public class BotCommand : Command { }
 
     public class VstsCommand : Command { }
 
-    [Verb("who", HelpText = WhoamiCommand.HelpText)]
-    public class WhoamiCommand2:WhoamiCommand {}
-    [Verb("whoami", HelpText = WhoamiCommand.HelpText)]
-    public class WhoamiCommand : BotCommand
+
+    [Verb("build", HelpText = "Start or Cancel a build. List all available builds. Type 'help build' for more info.")]
+    public class BuildCommand : VstsCommand
     {
-        public const string HelpText = "info about the current user and conversation";
+        [Option("id", Required = false, HelpText = "the build id or name")]
+        public string BuildId { get; set; }
+
+        [Value(0, HelpText = "pass the build id or name as the first parameter")]
+        public string BuildIdPos { get; set; }
+
+        [Option("start", Required = false, HelpText = "start a build (the default switch if none is specified)")]
+        public bool Start { get; set; }
+
+        [Option("list", Required = false, HelpText = "list all builds for a project")]
+        public bool List { get; set; }
+
+        [Option("cancel", Required = false, HelpText = "cancel all builds")]
+        public bool Cancel { get; set; }
+
+        [Option("project", Required = false, HelpText = "the project id or name")]
+        public string ProjectId { get; set; }
+
         [Usage]
         public static IEnumerable<Example> Examples
         {
             get
             {
-                yield return new Example("Example", new WhoamiCommand() { });
+                yield return new Example("Example", new BuildCommand {Start = true, BuildId = "42", ProjectId = Guid.NewGuid().ToString("N") });
+                yield return new Example("Example", new BuildCommand { Start = true, BuildIdPos = "42", ProjectId = Guid.NewGuid().ToString("N") });
+                yield return new Example("Example using projectid from state", new BuildCommand { Start = true, BuildIdPos = "42" });
+                yield return new Example("Example using projectid from state", new BuildCommand { Start = true, BuildId = "42" });
+                yield return new Example("Example using projectid from state", new BuildCommand {List = true,  });
+                yield return new Example("Example using projectid from state", new BuildCommand { Cancel = true, BuildId = "42" });
+                yield return new Example("Example using projectid from state", new BuildCommand { Cancel = true, BuildIdPos = "42" });
+                yield return new Example("Example", new BuildCommand { List = true, ProjectId = Guid.NewGuid().ToString("N") });
+                yield return new Example("Example", new BuildCommand { Cancel = true, BuildId = "42", ProjectId = Guid.NewGuid().ToString("N") });
+                yield return new Example("Example", new BuildCommand { Cancel = true, BuildIdPos = "42", ProjectId = Guid.NewGuid().ToString("N") });
             }
+        }
+
+        public override bool Validate()
+        {
+            var result = true;
+
+            var all = new[] {Start, Cancel, List};
+
+            //start = default
+            if (!all.Any(b => b)) Start = true;
+
+            if (all.Count(b => b) > 1)
+            {
+                Output.Add($"you cannot choose more than one from [Start({Start}), Cancel({Cancel}), List({List})]");
+                result = false;
+            }
+
+            var buildIdString = BuildIdPos ?? BuildId;
+            if (String.IsNullOrWhiteSpace(buildIdString) && !List)
+            {
+                Output.Add("could not get build id or name");
+                result = false;
+            }
+
+            return result;
         }
     }
 
-    [Verb("list-state", HelpText = "list all the state settings in the current conversation")]
-    public class ListStateCommand : BotCommand
+
+    [Verb("state", HelpText = "list all the state settings in the current conversation")]
+    public class StateCommand : BotCommand
     {
-        public override string Title => "list-state for {0}";
+        public StateCommand()
+        {
+            Title = "conversation state for {0}";
+        }
+
+        [Option("clear", Required = false, HelpText = "clear default settings")]
+        public bool Clear { get; set; }
+
         [Usage]
         public static IEnumerable<Example> Examples
         {
             get
             {
-                yield return new Example("Example", new ListStateCommand() { });
+                yield return new Example("Example", new StateCommand() { });
             }
+        }
+
+        public override bool Validate()
+        {
+            return true;
         }
     }
 
-    [Verb("set-state", HelpText = "initialize a state value")]
-    public class SetStateCommand : BotCommand
+
+    [Verb("project", HelpText = "List all available projects. Choose a default project. Type 'project help' for more info.")]
+    public class ProjectCommand : VstsCommand
     {
-        public override string Title => "set-state for user {0}";
-        [Option('p', "project", Required = false, HelpText = "set the current project to be used for subsequent commands")]
-        public string Project { get; set; }
+
+        [Value(0, HelpText = "pass the project id or name as the first parameter")]
+        public string IdOrNamePos { get; set; }
+
+        [Option("list", Required = false, HelpText = "list available projects (the default switch if none is specified)")]
+        public bool List { get; set; }
+
+        [Option("default", Required = false, HelpText = "set the projectid as default")]
+        public bool Default { get; set; }
+
         [Usage]
         public static IEnumerable<Example> Examples
         {
+
             get
             {
-                yield return new Example("Example", new SetStateCommand() {Project = Guid.NewGuid().ToString("N")});
+                yield return new Example("List available projects", new ProjectCommand() {List = true });
+                yield return new Example("Set this project as default", new ProjectCommand() { Default = true, IdOrNamePos = Guid.NewGuid().ToString("N")});
+                yield return new Example("List available projects (--list is default)", new ProjectCommand() { });
+
             }
+        }
+
+        public override bool Validate()
+        {
+            var result = true;
+
+            var all = new[] { List, Default };
+
+            //list is default
+            if (!all.Any(b => b)) List = true;
+
+            if (all.Count(b => b) > 1)
+            {
+                Output.Add($"you cannot choose more than one from [Default({Default}), List({List})]");
+                result = false;
+            }
+
+            if (Default && String.IsNullOrWhiteSpace(IdOrNamePos))
+            {
+                result = false;
+                Output.Add("could not find a project id or name");
+            }
+
+            return result;
         }
     }
 
-    [Verb("run-alias", HelpText = RunAliasCommand.HelpText)]
-    public class RunAliasCommand : BotCommand
+    [Verb("alias", HelpText = "Create an alias for another command. Run an aliased command. List all known aliases. Type 'help alias' for more info.")]
+    public class AliasCommand : Command
     {
-        public const string HelpText = "run an aliased command. You can also run the alias by just passing the alias without 'run-alias'. The command 'run-alias <aliasName>' is equivalent with the command '<aliasName>'";
-        [Option('n', "name", Required = false, HelpText = "")]
+
+        [Option("name", Required = false, HelpText = "the name of the alias")]
         public string Name { get; set; }
 
-        [Value(0)]
-        public string Namepos { get; set; }
-        [Usage]
-        public static IEnumerable<Example> Examples
-        {
-            get
-            {
-                yield return new Example("Example", new RunAliasCommand() {Name = "testme"});
-                yield return new Example("Example", new RunAliasCommand() { Namepos = "testme" });
-            }
-        }
-    }
-
-    [Verb("set-alias", HelpText = "create an alias for another command")]
-    public class SetAliasCommand : BotCommand
-    {
-        [Option('n', "name", Required = true, HelpText = "the name of the alias")]
-        public string Name { get; set; }
-
-        [Option('c', "command", Required = false, HelpText = "the command to alias")]
+        [Option("command", Required = false, HelpText = "the aliased command")]
         public string Command { get; set; }
 
-        [Value(0, HelpText = "the command to alias")]
+        [Value(0, HelpText = "the aliased command can also be passed without the --command switch")]
         public IEnumerable<string> CommandSeq { get; set; }
 
-        [Usage]
-        public static IEnumerable<Example> Examples
-        {
-            get
-            {
-                yield return new Example("Example", new SetAliasCommand() { Name = "lp", Command = "list-projects" });
-                yield return new Example("Example", new SetAliasCommand() { Name = "qb2", CommandSeq = "\"queue-build 42\"".Split(' ') });
-             }
-        }
-    }
+        [Option("create", Required = false, HelpText = "create a new alias or update an existing one (this is the default switch if none is specified). Requires you to also specify a name and command")]
+        public bool Create { get; set; }
 
-    [Verb("queue-build", HelpText = "queue a build")]
-    public class QueueCommand : VstsCommand
-    {
-        [Value(0, HelpText = "pass the buildid as the first parameter")]
-        public string BuildIdPos { get; set; }
+        [Option("run", Required = false, HelpText = "run an aliased command. You can also run the alias by just passing the alias without 'alias --run'. The command 'alias --run <aliasName>' is equivalent with the command '<aliasName>'")]
+        public bool Run { get; set; }
 
-        [Option('i', longName: "id", Required = false, HelpText = "the build id")]
-        public string BuildId { get; set; }
+        [Option("list", Required = false, HelpText = "list all known aliases")]
+        public bool List { get; set; }
 
-        [Option('n', longName: "name", Required = false, HelpText = "the build name")]
-        public string BuildName { get; set; }
-
-        [Option("pi", Required = false, HelpText = "the project id")]
-        public string ProjectId { get; set; }
-
-        [Option("pn", Required = false, HelpText = "the project name")]
-        public string ProjectName { get; set; }
+        [Option("clear", Required = false, HelpText = "clear all known aliases")]
+        public bool Clear { get; set; }
 
         [Usage]
         public static IEnumerable<Example> Examples
         {
             get
             {
-                yield return new Example("Example", new QueueCommand { BuildId = "42", ProjectId = Guid.NewGuid().ToString("N") });
-                yield return new Example("Example using projectid from state", new QueueCommand { BuildIdPos = "42"});
-                yield return new Example("Example using projectid from state", new QueueCommand { BuildId = "42" });
-
+                yield return new Example("Example", new AliasCommand() { Name = "lp", Command = "project --list" });
+                yield return new Example("Example", new AliasCommand() { Name = "qb2", CommandSeq = new[] { "build --start 42" } });
+                yield return new Example("Example", new AliasCommand() { Name = "qb2", CommandSeq = new [] { "\"build 42\""} });
+                yield return new Example("Example", new AliasCommand() { Run = true, Name = "lp" });
+                yield return new Example("Example", new AliasCommand() { List = true });
 
             }
         }
-    }
 
-    [Verb("cancel-build", HelpText = "cancel a queued or running build")]
-    public class CancelBuildCommand : VstsCommand
-    {
-        [Value(0, HelpText = "pass the buildid as the first parameter")]
-        public string BuildIdPos { get; set; }
-
-        [Option('i', longName: "id", Required = false, HelpText = "the build id")]
-        public string BuildId { get; set; }
-
-        [Option('n', longName: "name", Required = false, HelpText = "the build name")]
-        public string BuildName { get; set; }
-
-        [Option("pi", Required = false, HelpText = "the project id")]
-        public string ProjectId { get; set; }
-
-        [Option("pn", Required = false, HelpText = "the project name")]
-        public string ProjectName { get; set; }
-
-        [Usage]
-        public static IEnumerable<Example> Examples
+        public override bool Validate()
         {
-            get
+            var result = true;
+
+            var all = new[] {Create, Run, List, Clear};
+
+            //create is default
+            if (!all.Any(b => b)) Create = true;
+
+            if (all.Count(b => b) > 1)
             {
-                yield return new Example("Example", new CancelBuildCommand { BuildId = "42", ProjectId = Guid.NewGuid().ToString("N") });
-                yield return new Example("Example using projectid from state", new CancelBuildCommand { BuildIdPos = "42" });
-                yield return new Example("Example using projectid from state", new CancelBuildCommand { BuildId = "42" });
+                Output.Add($"you cannot choose more than one from [Create({Create}), Run({Run}), List({List}), Clear({Clear})]");
+                result = false;
             }
-        }
-    }
 
-    [Verb("list-builds", HelpText = "list all builds in a project. If no project is specified, we use the one in state.")]
-    public class ListBuildCommand : VstsCommand
-    {
-
-        [Value(0, HelpText = "the project id passed as the first positional parameter")]
-        public string ProjectIdPos { get; set; }
-
-        [Option('i', "id", Required = false, HelpText = "the project id")]
-        public string ProjectId { get; set; }
-
-        [Option('n', "name", Required = false, HelpText = "the project name")]
-        public string ProjectName { get; set; }
-        [Usage]
-        public static IEnumerable<Example> Examples
-        {
-            get
+            //if create and no name or no command
+            if (Create &&
+                (String.IsNullOrWhiteSpace(Name) ||
+                 (String.IsNullOrWhiteSpace(Command) && (CommandSeq == null || !CommandSeq.Any()))))
             {
-                yield return new Example("Example", new ListBuildCommand() { ProjectId = Guid.NewGuid().ToString("N") });
-                yield return new Example("Example", new ListBuildCommand() { ProjectIdPos = Guid.NewGuid().ToString("N") });
-                yield return new Example("Example using projectid from state", new ListBuildCommand() { });
+                Output.Add("--create was specified but either a name or a command was not given");
+                result = false;
             }
-        }
-    }
 
-    [Verb("list-projects", HelpText = "list all projects")]
-    public class ListProjectCommand : VstsCommand
-    {
-        [Usage]
-        public static IEnumerable<Example> Examples
-        {
-            get
+            //if run and no name
+            if (Run && String.IsNullOrWhiteSpace(Name))
             {
-                yield return new Example("Example", new ListProjectCommand() { });
+                Output.Add("--run was specified but a name was not given");
+                result = false;
             }
+
+            return result;
         }
     }
 }

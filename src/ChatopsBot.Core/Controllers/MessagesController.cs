@@ -28,7 +28,7 @@ namespace ChatopsBot.Core.Controllers
 
             if (message.Type == "Message")
             {
-                var metaMessage = MessageMeta.SanitizeMessage(message);
+                var metaMessage = MessageMeta.DigestMessage(message);
 
                 var state = BuildBotState.CreateState(message);
 

@@ -15,17 +15,13 @@ namespace TestConsole
     {
         static void Main(string[] args)
         {
-            var command1 = CommandParser.ParseCommand(args);
+            var input1 = "set-alias -n \"alias Name\" \"queue-build 42\"";
+            var command1 = CommandParser.ParseCommand(input1);
 
-            var command2 = CommandParser.ParseCommand(string.Join(" ",args));
+            var input2 = "set-alias -n \"alias Name\" -c \"queue-build 42\"";
+            var command2 = CommandParser.ParseCommand(input2);
 
-
-            Console.WriteLine(string.Join(Environment.NewLine, command1.Output));
-            Console.WriteLine("------------------------");
-            Console.WriteLine(string.Join(Environment.NewLine, command2.Output));
-
-
-            //Console.ReadLine();
+            Console.ReadLine();
         }
 
 

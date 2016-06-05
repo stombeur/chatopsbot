@@ -40,7 +40,7 @@ namespace ChatopsBot.Core.Vsts
             return await buildClient.GetDefinitionsAsync(projectid);
         }
 
-        public static async Task<Build> StartBuild(int buildid, string projectid, string requestedForName)
+        public static async Task<Build> StartBuild(int buildid, string projectid)
         {
             VssConnection connection = new VssConnection(new Uri(ConfigurationManager.AppSettings["vstsurl"]), new VssBasicCredential(string.Empty, ConfigurationManager.AppSettings["devopsbottoken"]));
             var client = connection.GetClient<BuildHttpClient>();
@@ -48,10 +48,16 @@ namespace ChatopsBot.Core.Vsts
             var build = new Build();
             build.Definition = def;
 
-            //var identity = await GetIdentity(requestedForName, projectid);
-            //if (identity != null) build.RequestedFor = identity;
-
             return await client.QueueBuildAsync(build, Guid.Parse(projectid));
+        }
+
+        public static async Task<int> GetBuildId(string buildName, string projectid)
+        {
+            VssConnection connection = new VssConnection(new Uri(ConfigurationManager.AppSettings["vstsurl"]), new VssBasicCredential(string.Empty, ConfigurationManager.AppSettings["devopsbottoken"]));
+            var client = connection.GetClient<BuildHttpClient>();
+
+            var definitions = await client.GetDefinitionsAsync(projectid, name: buildName);
+            return definitions.Select(b => b.Id).FirstOrDefault();
         }
 
         public static async Task<IdentityRef> GetIdentity(string name, string projectid)

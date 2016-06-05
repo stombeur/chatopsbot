@@ -15,7 +15,7 @@ namespace ChatopsBot.Core.Util
         public bool IsHelp { get; set; }
         public bool IsSlack { get; set; }
 
-        public static MessageMeta SanitizeMessage(Message message)
+        public static MessageMeta DigestMessage(Message message)
         {
             var result = new MessageMeta();
             result.Message = message;
@@ -50,6 +50,16 @@ namespace ChatopsBot.Core.Util
 
             //remove funny html quotes
             inputText = inputText.Replace("“", "\"").Replace("”", "\"");
+
+            //remove funny double dashes
+            inputText = inputText.Replace("—", "--");
+
+            //remove url formatting
+            //Build <http://tombeur.be|tombeur.be>
+            //if (inputText.Contains("<http://") || inputText.Contains("<https://"))
+            //{
+                
+            //}
 
             //if someone addresses the bot to start a conversation, just show help
             if (inputText.Trim().Equals("hi", StringComparison.CurrentCultureIgnoreCase)
