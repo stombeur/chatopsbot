@@ -58,7 +58,6 @@ project --default abc
 |--list          |list all known aliases
 |--clear         |clear all known aliases
 |value pos. 0    |the aliased command can also be passed without the --command
-                  switch
 
 Examples:
 
