@@ -28,6 +28,7 @@ namespace ChatopsBot.Core.Util
             var lines3 = lines2.Select(line => line.StartsWith("   ") ? ">" + line.Substring(2) : line);
 
             attachment.Text = string.Join(Constants.SlackNewLine, lines3);
+            attachment.Fallback = string.Join(Constants.SlackNewLine, command.Output);
             result.Attachments.Add(attachment);
 
             if (!state.TfsUserPrompt && string.IsNullOrWhiteSpace(state.TfsUser))
@@ -40,6 +41,7 @@ namespace ChatopsBot.Core.Util
                 tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}If you do, I can request builds in your name.";
                 tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}Run this command to set your tfs username:";
                 tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}```state --tfsuser [your username]```";
+                attachment.Fallback = $"{meta.FromName}, please set your tfs username with the following command:{Constants.SlackNewLine}state --tfsuser [your username]";
 
                 result.Attachments.Add(tfsUserPromptAttachment);
             }
