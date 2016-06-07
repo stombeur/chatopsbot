@@ -67,15 +67,14 @@ namespace ChatopsBot.Core.Commands
                     }
 
                     command.Output.Add($"buildId={buildId}");
-                    command.Output.Add($"projectid={projectid}");
-
                     if (command.Start)
                     {
                         command.Title += "-start";
                         var build = await VSTSClient.StartBuild(buildId, projectid, state.TfsUser, command.Config);
                         command.Output.Add($"build name '{build.Definition.Name}'");
                         command.Output.Add($"build number {build.BuildNumber}");
-                        if (!string.IsNullOrWhiteSpace(state.TfsUser)) command.Output.Add($"requested for {build.RequestedFor.Id}");
+                        command.Output.Add($"project={build.Project.Name}");
+                        if (!string.IsNullOrWhiteSpace(state.TfsUser)) command.Output.Add($"requested for {build.RequestedFor.UniqueName}");
                         if (!string.IsNullOrWhiteSpace(command.Config)) command.Output.Add($"build parameters {build.Parameters}");
                     }
                     else if (command.Cancel)
@@ -107,7 +106,7 @@ namespace ChatopsBot.Core.Commands
                     var hasBuilds = false;
                     foreach (var b in builds)
                     {
-                        command.Output.Add($"{b.Definition.Name} {b.BuildNumber} - *{b.Status}* (Parameters={b.Parameters})");
+                        command.Output.Add($"{b.Definition.Name} {b.BuildNumber} - *{b.Status}*");
                         hasBuilds = true;
                     }
                     if (!hasBuilds) command.Output.Add("   no builds in queue");

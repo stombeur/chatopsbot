@@ -24,7 +24,8 @@ Currently supported commands for the bot:
 |--list          |list all builds for a project  |
 |--cancel        |cancel all builds  |
 |--project       |the project id or name | 
-|--config       |override the default BuildConfiguration | 
+|--config       |override the default BuildConfiguration |
+|--queue       |show all running and queued builds | 
 |value pos. 0    |pass the build id or name as the first parameter  |
 
 Examples: 
@@ -35,6 +36,7 @@ build 42
 build --cancel 42
 build --project abc --id 42
 build 42 --config Debug
+build --queue --project abcxyz
 ```
 
 ####project

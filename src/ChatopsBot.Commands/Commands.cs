@@ -69,6 +69,7 @@ namespace ChatopsBot.Commands
                 yield return new Example("Cancel all builds with id=42 using projectid from state", new BuildCommand { Cancel = true, BuildIdPos = "42" });
                 yield return new Example("List all builds with projectid", new BuildCommand { List = true, ProjectId = Guid.NewGuid().ToString("N") });
                 yield return new Example("List all builds using projectid from state", new BuildCommand { List = true });
+                yield return new Example("Show all running and queued builds using projectid from state", new BuildCommand { Queue = true });
             }
         }
 
