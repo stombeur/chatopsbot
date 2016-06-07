@@ -59,16 +59,15 @@ namespace ChatopsBot.Commands
         {
             get
             {
-                yield return new Example("Example", new BuildCommand {Start = true, BuildId = "42", ProjectId = Guid.NewGuid().ToString("N") });
-                yield return new Example("Example", new BuildCommand { Start = true, BuildIdPos = "42", ProjectId = Guid.NewGuid().ToString("N") });
-                yield return new Example("Example using projectid from state", new BuildCommand { Start = true, BuildIdPos = "42" });
-                yield return new Example("Example using projectid from state", new BuildCommand { Start = true, BuildId = "42" });
-                yield return new Example("Example using projectid from state", new BuildCommand {List = true,  });
-                yield return new Example("Example using projectid from state", new BuildCommand { Cancel = true, BuildId = "42" });
-                yield return new Example("Example using projectid from state", new BuildCommand { Cancel = true, BuildIdPos = "42" });
-                yield return new Example("Example", new BuildCommand { List = true, ProjectId = Guid.NewGuid().ToString("N") });
-                yield return new Example("Example", new BuildCommand { Cancel = true, BuildId = "42", ProjectId = Guid.NewGuid().ToString("N") });
-                yield return new Example("Example", new BuildCommand { Cancel = true, BuildIdPos = "42", ProjectId = Guid.NewGuid().ToString("N") });
+                yield return new Example("Build project with id=42 with projectid", new BuildCommand {Start = true, BuildId = "42", ProjectId = Guid.NewGuid().ToString("N") });
+                yield return new Example("Build project with id=42 with projectid", new BuildCommand { Start = true, BuildIdPos = "42", ProjectId = Guid.NewGuid().ToString("N") });
+                yield return new Example("Build project with id=42 using projectid from state", new BuildCommand { Start = true, BuildIdPos = "42" });
+                yield return new Example("Build project with id=42 using projectid from state", new BuildCommand { Start = true, BuildId = "42" });
+                yield return new Example("List all knpwn builds using projectid from state", new BuildCommand {List = true,  });
+                yield return new Example("Cancel all builds with id=42 using projectid from state", new BuildCommand { Cancel = true, BuildId = "42" });
+                yield return new Example("Cancel all builds with id=42 using projectid from state", new BuildCommand { Cancel = true, BuildIdPos = "42" });
+                yield return new Example("List all builds with projectid", new BuildCommand { List = true, ProjectId = Guid.NewGuid().ToString("N") });
+                yield return new Example("List all builds using projectid from state", new BuildCommand { List = true });
             }
         }
 
@@ -107,10 +106,7 @@ namespace ChatopsBot.Commands
             Title = "conversation state for {0}";
         }
 
-        [Option("tfsuser", Required = false, HelpText = "set your tfs username")]
-        public string TfsUser { get; set; }
-
-        [Option("clear", Required = false, HelpText = "clear default settings")]
+        [Option("clear", Required = false, HelpText = "clear state settings")]
         public bool Clear { get; set; }
 
         [Usage]
@@ -118,7 +114,9 @@ namespace ChatopsBot.Commands
         {
             get
             {
-                yield return new Example("Example", new StateCommand() { });
+                yield return new Example("Show all your state settings", new StateCommand() { });
+                yield return new Example("Clear all your state settings", new StateCommand() {Clear = true });
+
             }
         }
 
@@ -128,19 +126,38 @@ namespace ChatopsBot.Commands
         }
     }
 
+    [Verb("set", HelpText = "add state settings in the current conversation")]
+    public class SetCommand : BotCommand
+    {
 
-    [Verb("project", HelpText = "List all available projects. Choose a default project. Type 'project help' for more info.")]
+        [Option("tfsuser", Required = false, HelpText = "set your tfs username")]
+        public string TfsUser { get; set; }
+
+        [Option("project", Required = false, HelpText = "set your default tfs project")]
+        public string Project { get; set; }
+
+        [Usage]
+        public static IEnumerable<Example> Examples
+        {
+            get
+            {
+                yield return new Example("Set your tfs user name", new SetCommand() { TfsUser = "me@my.com"});
+                yield return new Example("Set your default project", new SetCommand() { Project = Guid.NewGuid().ToString("N")});
+            }
+        }
+
+        public override bool Validate()
+        {
+            return true;
+        }
+    }
+
+    [Verb("project", HelpText = "List all available projects. Type 'project help' for more info.")]
     public class ProjectCommand : VstsCommand
     {
 
-        [Value(0, HelpText = "pass the project id or name as the first parameter")]
-        public string IdOrNamePos { get; set; }
-
         [Option("list", Required = false, HelpText = "list available projects (the default switch if none is specified)")]
         public bool List { get; set; }
-
-        [Option("default", Required = false, HelpText = "set the projectid as default")]
-        public bool Default { get; set; }
 
         [Usage]
         public static IEnumerable<Example> Examples
@@ -149,7 +166,6 @@ namespace ChatopsBot.Commands
             get
             {
                 yield return new Example("List available projects", new ProjectCommand() {List = true });
-                yield return new Example("Set this project as default", new ProjectCommand() { Default = true, IdOrNamePos = Guid.NewGuid().ToString("N")});
                 yield return new Example("List available projects (--list is default)", new ProjectCommand() { });
 
             }
@@ -159,21 +175,15 @@ namespace ChatopsBot.Commands
         {
             var result = true;
 
-            var all = new[] { List, Default };
+            var all = new[] { List };
 
             //list is default
             if (!all.Any(b => b)) List = true;
 
             if (all.Count(b => b) > 1)
             {
-                Output.Add($"you cannot choose more than one from [Default({Default}), List({List})]");
+                Output.Add($"you cannot choose more than one from [List({List})]");
                 result = false;
-            }
-
-            if (Default && String.IsNullOrWhiteSpace(IdOrNamePos))
-            {
-                result = false;
-                Output.Add("could not find a project id or name");
             }
 
             return result;
@@ -210,11 +220,11 @@ namespace ChatopsBot.Commands
         {
             get
             {
-                yield return new Example("Example", new AliasCommand() { Name = "lp", Command = "project --list" });
-                yield return new Example("Example", new AliasCommand() { Name = "qb2", CommandSeq = new[] { "build --start 42" } });
-                yield return new Example("Example", new AliasCommand() { Name = "qb2", CommandSeq = new [] { "\"build 42\""} });
-                yield return new Example("Example", new AliasCommand() { Run = true, Name = "lp" });
-                yield return new Example("Example", new AliasCommand() { List = true });
+                yield return new Example("Create or update an alias with the --command switch", new AliasCommand() { Name = "lp", Command = "project --list" });
+                yield return new Example("Create or update an alias. Everything after the name of the alias is the command", new AliasCommand() { Name = "qb2", CommandSeq = new[] { "build --start 42" } });
+                yield return new Example("Create or update an alias", new AliasCommand() { Name = "qb2", CommandSeq = new [] { "build 42"} });
+                yield return new Example("Run an alias. This is equivalent to simply typing 'my-alias'", new AliasCommand() { Run = true, Name = "my-alias" });
+                yield return new Example("List all known aliases", new AliasCommand() { List = true });
 
             }
         }

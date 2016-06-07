@@ -25,12 +25,7 @@ namespace ChatopsBot.Core.Commands
                         command.Output.Add($"{p.Name} - projectid={p.Id:N}");
                     }
                 }
-                else if (command.Default)
-                {
-                    command.Title += "-default";
-                    command.Output.Add($"set default project to '{command.IdOrNamePos}'");
-                    state.DefaultProject = command.IdOrNamePos;
-                }
+
                 command.ExecutingSuccess = true;
 
             }

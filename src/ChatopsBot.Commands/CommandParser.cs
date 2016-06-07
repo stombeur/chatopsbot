@@ -37,7 +37,7 @@ namespace ChatopsBot.Commands
             var result = parser
                 .ParseArguments
                 <ProjectCommand, AliasCommand,
-                     StateCommand, BuildCommand>(args)
+                     StateCommand, BuildCommand, SetCommand>(args)
                 .MapResult(
                     (Command opts) => opts,
                     errs => new Command() {ParsingSuccess = false, Output = new List<string>() { helpString.ToString() } });
