@@ -75,6 +75,7 @@ namespace ChatopsBot.Core.Commands
                         var build = await VSTSClient.StartBuild(buildId, projectid, state.TfsUser, command.Config);
                         command.Output.Add($"build name '{build.Definition.Name}'");
                         command.Output.Add($"build number {build.BuildNumber}");
+                        if (!string.IsNullOrWhiteSpace(state.TfsUser)) command.Output.Add($"requested for {build.RequestedFor.Id}");
                         if (!string.IsNullOrWhiteSpace(command.Config)) command.Output.Add($"build parameters {build.Parameters}");
                     }
                     else if (command.Cancel)

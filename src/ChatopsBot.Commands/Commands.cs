@@ -62,7 +62,8 @@ namespace ChatopsBot.Commands
                 yield return new Example("Build project with id=42 with projectid", new BuildCommand {Start = true, BuildId = "42", ProjectId = Guid.NewGuid().ToString("N") });
                 yield return new Example("Build project with id=42 with projectid", new BuildCommand { Start = true, BuildIdPos = "42", ProjectId = Guid.NewGuid().ToString("N") });
                 yield return new Example("Build project with id=42 using projectid from state", new BuildCommand { Start = true, BuildIdPos = "42" });
-                yield return new Example("Build project with id=42 using projectid from state", new BuildCommand { Start = true, BuildId = "42" });
+                yield return new Example("Build project with id=42 using projectid from state", new BuildCommand { BuildId = "42" });
+                yield return new Example("Build project with id=42 with BuildConfiguration=Debug", new BuildCommand { BuildId = "42", Config = "Debug"});
                 yield return new Example("List all knpwn builds using projectid from state", new BuildCommand {List = true,  });
                 yield return new Example("Cancel all builds with id=42 using projectid from state", new BuildCommand { Cancel = true, BuildId = "42" });
                 yield return new Example("Cancel all builds with id=42 using projectid from state", new BuildCommand { Cancel = true, BuildIdPos = "42" });
