@@ -33,6 +33,9 @@ namespace ChatopsBot.Commands
         [Option("id", Required = false, HelpText = "the build id or name")]
         public string BuildId { get; set; }
 
+        [Option("config", Required = false, HelpText = "override the default build configuration")]
+        public string Config { get; set; }
+
         [Value(0, HelpText = "pass the build id or name as the first parameter")]
         public string BuildIdPos { get; set; }
 
@@ -44,6 +47,9 @@ namespace ChatopsBot.Commands
 
         [Option("cancel", Required = false, HelpText = "cancel all builds")]
         public bool Cancel { get; set; }
+
+        [Option("queue", Required = false, HelpText = "show all builds in the queue (inprogress or notstarted)")]
+        public bool Queue { get; set; }
 
         [Option("project", Required = false, HelpText = "the project id or name")]
         public string ProjectId { get; set; }
@@ -70,7 +76,7 @@ namespace ChatopsBot.Commands
         {
             var result = true;
 
-            var all = new[] {Start, Cancel, List};
+            var all = new[] {Start, Cancel, List, Queue};
 
             //start = default
             if (!all.Any(b => b)) Start = true;
@@ -82,7 +88,7 @@ namespace ChatopsBot.Commands
             }
 
             var buildIdString = BuildIdPos ?? BuildId;
-            if (String.IsNullOrWhiteSpace(buildIdString) && !List)
+            if (String.IsNullOrWhiteSpace(buildIdString) && (Start || Cancel))
             {
                 Output.Add("could not get build id or name");
                 result = false;
@@ -100,6 +106,9 @@ namespace ChatopsBot.Commands
         {
             Title = "conversation state for {0}";
         }
+
+        [Option("tfsuser", Required = false, HelpText = "set your tfs username")]
+        public string TfsUser { get; set; }
 
         [Option("clear", Required = false, HelpText = "clear default settings")]
         public bool Clear { get; set; }

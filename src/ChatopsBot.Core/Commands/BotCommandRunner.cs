@@ -16,13 +16,21 @@ namespace ChatopsBot.Core.Commands
         {
             if (command.Clear)
             {
-                command.Title = "clear default settings for {0}";
+                command.Title = "clear settings for {0}";
                 state.DefaultProject = null;
+                state.TfsUser = null;
                 command.Output.Add("done - all clear!");
+            }
+            else if (!string.IsNullOrWhiteSpace(command.TfsUser))
+            {
+                state.TfsUser = command.TfsUser;
+                command.Output.Add($"set tfsuser to {state.TfsUser} for {meta.FromName}");
             }
             else
             {
                 command.Output.Add($"default project = '{state.DefaultProject}'");
+                command.Output.Add($"tfs user = '{state.TfsUser}'");
+
                 command.Output.Add("");
 
                 var message = meta.Message;

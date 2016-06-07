@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.Bot.Connector;
 
 namespace ChatopsBot.Core.Util
@@ -56,10 +57,12 @@ namespace ChatopsBot.Core.Util
 
             //remove url formatting
             //Build <http://tombeur.be|tombeur.be>
-            //if (inputText.Contains("<http://") || inputText.Contains("<https://"))
-            //{
-                
-            //}
+            // <.*\|{1}(.*)>{1}
+            var regex = new Regex(@"<.*\|{1}(.*)>{1}");
+            var match = regex.Match(inputText);
+            if (match.Success && match.Groups.Count > 1)
+                inputText = inputText.Replace(match.Value, match.Groups[1].Value);
+            //inputText = regex.Replace(inputText, match => match.Value);
 
             //if someone addresses the bot to start a conversation, just show help
             if (inputText.Trim().Equals("hi", StringComparison.CurrentCultureIgnoreCase)

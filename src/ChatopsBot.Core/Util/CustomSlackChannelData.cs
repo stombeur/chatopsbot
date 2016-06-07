@@ -27,6 +27,6 @@ namespace ChatopsBot.Core.Util
         public string Title { get; set; }
         public string Text { get; set; }
         public string[] mrkdwn_in { get; set; } = new[] {"text"};
-
+       
     }
 }

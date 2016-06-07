@@ -10,7 +10,7 @@ namespace ChatopsBot.Core.Util
 {
     public class SlackFormatter : IReplyMessageFormatter
     {
-        public object FormatAttachments(Command command, MessageMeta meta)
+        public object FormatAttachments(Command command, MessageMeta meta, BuildBotState state)
         {
 
             var result = new CustomSlackChannelData();
@@ -30,18 +30,24 @@ namespace ChatopsBot.Core.Util
             attachment.Text = string.Join(Constants.SlackNewLine, lines3);
             result.Attachments.Add(attachment);
 
-            //var attach = new Attachment()
-            //{
-            //Title = command.Title,
+            if (!state.TfsUserPrompt && string.IsNullOrWhiteSpace(state.TfsUser))
+            {
+                state.TfsUserPrompt = true;
 
-            //Text = string.Join(Constants.SlackNewLine, command.Output),
-            //};
-            //return new List<Attachment>() {attach};
+                var tfsUserPromptAttachment = new CustomSlackAttachment();
+                tfsUserPromptAttachment.Color = "warning";
+                tfsUserPromptAttachment.Text = $"Hey {meta.FromName}, I noticed you have not set your tfs username.";
+                tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}If you do, I can request builds in your name.";
+                tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}Run this command to set your tfs username:";
+                tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}```state --tfsuser [your username]```";
+
+                result.Attachments.Add(tfsUserPromptAttachment);
+            }
 
             return result;
         }
 
-        public string Format(Command command, MessageMeta meta)
+        public string Format(Command command, MessageMeta meta, BuildBotState state)
         {
             return (command.IsHelp && !string.IsNullOrWhiteSpace(meta.ReplyHeader)) ? meta.ReplyHeader : "";
         }

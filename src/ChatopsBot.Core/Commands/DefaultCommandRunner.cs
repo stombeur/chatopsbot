@@ -93,7 +93,7 @@ namespace ChatopsBot.Core.Commands
                     else if (state.Aliases == null || state.Aliases.Count == 0)
                         command.Output.Add($"   none");
 
-
+                    command.ExecutingSuccess = true;
                 }
                 else if (command.Clear)
                 {
@@ -102,6 +102,7 @@ namespace ChatopsBot.Core.Commands
                     state.Aliases = new List<CommandAlias>();
                     command.Output.Add($"done - all clear!");
 
+                    command.ExecutingSuccess = true;
                 }
             }
             catch (Exception ex)

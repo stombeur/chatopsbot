@@ -59,7 +59,7 @@ namespace ChatopsBot.Core.Commands
 
             try
             {
-                //precedence = start, cancel, list
+                //precedence = start, cancel, list, queue
                 if (command.Start || command.Cancel)
                 {
                     //we need buildid or name
@@ -77,9 +77,10 @@ namespace ChatopsBot.Core.Commands
                     if (command.Start)
                     {
                         command.Title += "-start";
-                        var build = await VSTSClient.StartBuild(buildId, projectid);
+                        var build = await VSTSClient.StartBuild(buildId, projectid, state.TfsUser, command.Config);
                         command.Output.Add($"build name '{build.Definition.Name}'");
                         command.Output.Add($"build number {build.BuildNumber}");
+                        if (!string.IsNullOrWhiteSpace(command.Config)) command.Output.Add($"build parameters {build.Parameters}");
                     }
                     else if (command.Cancel)
                     {
@@ -103,6 +104,18 @@ namespace ChatopsBot.Core.Commands
                         command.Output.Add($"'{b.Name}' id=*{b.Id}*");
                     }
                 }
+                else if (command.Queue)
+                {
+                    command.Title += "-queue";
+                    var builds = await VSTSClient.GetRunningBuilds(projectid);
+                    var hasBuilds = false;
+                    foreach (var b in builds)
+                    {
+                        command.Output.Add($"{b.Definition.Name} {b.BuildNumber} - *{b.Status}* (Parameters={b.Parameters})");
+                        hasBuilds = true;
+                    }
+                    if (!hasBuilds) command.Output.Add("   no builds in queue");
+                }
 
                 command.ExecutingSuccess = true;
             }
@@ -114,6 +127,6 @@ namespace ChatopsBot.Core.Commands
             return await Task.FromResult((Command)command);
         }
 
- 
+
     }
 }

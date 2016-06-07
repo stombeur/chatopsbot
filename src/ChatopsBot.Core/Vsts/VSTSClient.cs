@@ -15,15 +15,30 @@ namespace ChatopsBot.Core.Vsts
 {
     public class VSTSClient
     {
+        //WorkItemTrackingHttpClient
+        //BuildHttpClient
+        //ProjectHttpClient
+        //TeamHttpClient
+
         public VSTSClient()
         {
 
+        }
+
+        public static async Task<List<Build>> GetRunningBuilds(string projectid)
+        {
+            VssConnection connection = new VssConnection(new Uri(ConfigurationManager.AppSettings["vstsurl"]), new VssBasicCredential(string.Empty, ConfigurationManager.AppSettings["devopsbottoken"]));
+            var client = connection.GetClient<BuildHttpClient>();
+
+            return await client.GetBuildsAsync(Guid.Parse(projectid), null, null, null, null, null, null, null, BuildStatus.InProgress | BuildStatus.NotStarted);
         }
 
         public static async Task<List<BuildDefinitionReference>>  GetBuildDefinitions(string projectid)
         {
             VssConnection connection = new VssConnection(new Uri(ConfigurationManager.AppSettings["vstsurl"]), new VssBasicCredential(string.Empty, ConfigurationManager.AppSettings["devopsbottoken"]));
             var client = connection.GetClient<BuildHttpClient>();
+
+
 
             return await client.GetDefinitionsAsync(Guid.Parse(projectid));
         }
@@ -33,6 +48,7 @@ namespace ChatopsBot.Core.Vsts
             VssConnection connection = new VssConnection(new Uri(ConfigurationManager.AppSettings["vstsurl"]), new VssBasicCredential(string.Empty, ConfigurationManager.AppSettings["devopsbottoken"]));
             var projClient = connection.GetClient<ProjectHttpClient>();
             var projects = await projClient.GetProjects();
+
             var projectid = projects.Where(p => p.Name.ToLower() == projectNameOrId || p.Id.ToString("N") == projectNameOrId).Select(p => p.Id).First();
 
             var buildClient = connection.GetClient<BuildHttpClient>();
@@ -40,13 +56,26 @@ namespace ChatopsBot.Core.Vsts
             return await buildClient.GetDefinitionsAsync(projectid);
         }
 
-        public static async Task<Build> StartBuild(int buildid, string projectid)
+        public static async Task<Build> StartBuild(int buildid, string projectid, string requestedFor = null, string buildConfig = null)
         {
             VssConnection connection = new VssConnection(new Uri(ConfigurationManager.AppSettings["vstsurl"]), new VssBasicCredential(string.Empty, ConfigurationManager.AppSettings["devopsbottoken"]));
             var client = connection.GetClient<BuildHttpClient>();
             var def = await client.GetDefinitionAsync(Guid.Parse(projectid), buildid);
-            var build = new Build();
-            build.Definition = def;
+            var build = new Build {Definition = def};
+
+            if (!string.IsNullOrWhiteSpace(requestedFor))
+            {
+                build.RequestedFor = await GetIdentity(requestedFor, projectid);
+            }
+
+            if (!string.IsNullOrWhiteSpace(buildConfig))
+            {
+                var buildPlatform = def.Variables["BuildPlatform"].Value;
+                var targetProfile = def.Variables["TargetProfile"].Value;
+
+                build.Parameters = $"{{\"BuildConfiguration\":\"{buildConfig}\",\"BuildPlatform\":\"{buildPlatform}\",\"TargetProfile\":\"{targetProfile}\"}}";
+                //{"BuildConfiguration":"Release.Azure","BuildPlatform":"any cpu","TargetProfile":"Cloud"}
+            }
 
             return await client.QueueBuildAsync(build, Guid.Parse(projectid));
         }
@@ -71,7 +100,7 @@ namespace ChatopsBot.Core.Vsts
             foreach (var t in teams)
             {
                 var members = await client.GetTeamMembersAsync(projectid, t.Id.ToString("N"));
-                result = members.Find(m => m.Id == name);
+                result = members.Find(m => m.Id.Equals(name, StringComparison.CurrentCultureIgnoreCase) || m.UniqueName.Equals(name, StringComparison.CurrentCultureIgnoreCase));
                 if (result != null) break;
             }
 

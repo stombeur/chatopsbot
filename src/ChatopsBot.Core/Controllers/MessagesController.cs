@@ -72,8 +72,8 @@ namespace ChatopsBot.Core.Controllers
 
                 IReplyMessageFormatter formatter = (metaMessage.IsSlack ? (IReplyMessageFormatter)new SlackFormatter() : (IReplyMessageFormatter)new DefaultFormatter());
 
-                var returnMessage = message.CreateReplyMessage(formatter.Format(command, metaMessage));
-                returnMessage.ChannelData = formatter.FormatAttachments(command, metaMessage);
+                var returnMessage = message.CreateReplyMessage(formatter.Format(command, metaMessage, state));
+                returnMessage.ChannelData = formatter.FormatAttachments(command, metaMessage, state);
                 returnMessage.BotUserData = state;
 
                 return returnMessage;
