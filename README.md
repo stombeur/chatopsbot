@@ -9,10 +9,11 @@ Follow the steps in [Microsoft Bot Connector - Getting Started](http://docs.botf
 Currently supported commands for the bot:
 
 * help - list the available commands
-* help command - more info on the command
+* help [command] - more info on [command]
 * state - some settings that the bot remembers for you during your conversation and some info about your conversation
+* set - change your user settings
 * alias - Create an alias for another command. Run an aliased command. List all known aliases.
-* project - List all available vsts projects. Choose a default project.
+* project - List all available vsts projects.
 * build - Start or Cancel a vsts build. List all available vsts builds.
 
 ####build
@@ -38,15 +39,40 @@ build --project abc --id 42
 |switch|description|
 |---|---|
 |--list |list available projects (the default switch if none is specified)|
-|--default |set the projectid as default|
-|value pos. 0 |pass the project id or name as the first parameter|
 
 Examples: 
 
 ```
 project --list
-project --default abc
+project
 ```
+
+####state
+|switch|description|
+|---|---|
+| |show your state settings|
+|--clear |clear all your state settings|
+
+Examples: 
+
+```
+state
+state --clear
+```
+
+####set
+|switch|description|
+|---|---|
+|--tfsuser |set your tfs username to request builds on your behalf|
+|--project|set your default tfs project|
+
+Examples: 
+
+```
+set --tfsuser me@my.com
+set --project abcdef
+```
+
 
 ####alias
 |switch|description|
@@ -62,9 +88,9 @@ project --default abc
 Examples:
 
 ````
-alias --name lp --command "project --list"
-alias --run --name lp
-lp
+alias --name my-alias --command "project --list"
+alias --run --name "my-alias"
+my-alias
 alias --list
 ````
 
