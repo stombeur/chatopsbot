@@ -104,4 +104,12 @@ Todos:
 * ~~Connect to luis to make the bot more chatty and less botty~~ Tried it and the language is too specific for luis.
 * use build and project names instead of ids
 * implement moar commands
+* get build logs as zip
+* get build artifacts as zip
+* get build tags
+* get build report as html
+* get work item queries
+* get work items in status
+* associate build to work item
+* get changes associated with a build
 * ~~improve the command parsing~~ Now using the [Commandline](https://github.com/gsscoder/commandline) library
