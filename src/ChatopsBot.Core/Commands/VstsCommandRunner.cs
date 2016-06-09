@@ -10,6 +10,53 @@ namespace ChatopsBot.Core.Commands
 {
     public class VstsCommandRunner
     {
+        public static async Task<Command> RunCommand(SetCommand command, MessageMeta meta, BuildBotState state)
+        {
+            if (!string.IsNullOrWhiteSpace(command.Project))
+            {
+                command.Title += "-default";
+                command.Output.Add($"set default project for {meta.FromName} to '{command.Project}'");
+                state.DefaultProject = command.Project;
+
+                command.ExecutingSuccess = true;
+            }
+            else if (!string.IsNullOrWhiteSpace(command.TfsUser))
+            {
+                command.Title += "-tfsuser";
+                command.Output.Add($"set tfs user for {meta.FromName} to '{command.TfsUser}'");
+
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(state.DefaultProject))
+                    {
+                        var identity = await VSTSClient.GetIdentity(command.TfsUser, state.DefaultProject);
+                        if (identity == null ||
+                            !identity.UniqueName.Equals(command.TfsUser, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            command.Output.Add($"the user {command.TfsUser} does not exist in project {state.DefaultProject}");
+                            return await Task.FromResult((Command)command);
+                        }
+                    }
+                    else
+                    {
+                        command.Output.Add("   Warning - set default project first to check if tfsuser exists");
+                    }
+
+                    state.TfsUser = command.TfsUser;
+                    command.ExecutingSuccess = true;
+                }
+                catch (Exception ex)
+                {
+                    command.Output.Add("   there was an ERROR - " + ex.Message);
+                }
+
+
+            }
+
+
+            return await Task.FromResult((Command)command);
+        }
+
         public static async Task<Command> RunCommand(ProjectCommand command, MessageMeta message, BuildBotState state)
         {
             if (!command.Validate()) return await Task.FromResult((Command)command);

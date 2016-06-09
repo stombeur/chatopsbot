@@ -129,7 +129,7 @@ namespace ChatopsBot.Commands
     }
 
     [Verb("set", HelpText = "add state settings in the current conversation")]
-    public class SetCommand : BotCommand
+    public class SetCommand : VstsCommand
     {
 
         [Option("tfsuser", Required = false, HelpText = "set your tfs username")]

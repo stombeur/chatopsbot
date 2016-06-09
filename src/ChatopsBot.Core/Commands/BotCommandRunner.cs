@@ -11,24 +11,7 @@ namespace ChatopsBot.Core.Commands
     public class BotCommandRunner
     {
 
-        public static async Task<Command> RunCommand(SetCommand command, MessageMeta meta, BuildBotState state)
-        {
-            if (!string.IsNullOrWhiteSpace(command.Project))
-            {
-                command.Title += "-default";
-                command.Output.Add($"set default project for {meta.FromName} to '{command.Project}'");
-                state.DefaultProject = command.Project;
-            }
-            else if (!string.IsNullOrWhiteSpace(command.TfsUser))
-            {
-                command.Title += "-tfsuser";
-                command.Output.Add($"set tfs user for {meta.FromName} to '{command.TfsUser}'");
-                state.TfsUser = command.TfsUser;
-            }
-            command.ExecutingSuccess = true;
-
-            return await Task.FromResult((Command)command);
-        }
+       
 
         public static async Task<Command> RunCommand(StateCommand command, MessageMeta meta, BuildBotState state)
         {

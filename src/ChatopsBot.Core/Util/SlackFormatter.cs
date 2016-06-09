@@ -40,8 +40,8 @@ namespace ChatopsBot.Core.Util
                 tfsUserPromptAttachment.Text = $"Hey {meta.FromName}, I noticed you have not set your tfs username.";
                 tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}If you do, I can request builds in your name.";
                 tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}Run this command to set your tfs username:";
-                tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}```state --tfsuser [your username]```";
-                attachment.Fallback = $"{meta.FromName}, please set your tfs username with the following command:{Constants.SlackNewLine}state --tfsuser [your username]";
+                tfsUserPromptAttachment.Text += $"{Constants.SlackNewLine}```set --tfsuser [your username]```";
+                attachment.Fallback = $"{meta.FromName}, please set your tfs username with the following command:{Constants.SlackNewLine}set --tfsuser [your username]";
 
                 result.Attachments.Add(tfsUserPromptAttachment);
             }

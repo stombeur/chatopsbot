@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommandLine.Infrastructure;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Identity.Client;
@@ -37,8 +38,6 @@ namespace ChatopsBot.Core.Vsts
         {
             VssConnection connection = new VssConnection(new Uri(ConfigurationManager.AppSettings["vstsurl"]), new VssBasicCredential(string.Empty, ConfigurationManager.AppSettings["devopsbottoken"]));
             var client = connection.GetClient<BuildHttpClient>();
-
-
 
             return await client.GetDefinitionsAsync(Guid.Parse(projectid));
         }
@@ -95,7 +94,7 @@ namespace ChatopsBot.Core.Vsts
 
             VssConnection connection = new VssConnection(new Uri(ConfigurationManager.AppSettings["vstsurl"]), new VssBasicCredential(string.Empty, ConfigurationManager.AppSettings["devopsbottoken"]));
             var client = connection.GetClient<TeamHttpClient>();
-
+           
             var teams = await client.GetTeamsAsync(projectid);
             foreach (var t in teams)
             {
