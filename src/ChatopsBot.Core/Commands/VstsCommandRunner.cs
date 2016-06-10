@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web.UI.WebControls;
 using ChatopsBot.Commands;
 using ChatopsBot.Core.Util;
 using ChatopsBot.Core.Vsts;
@@ -153,7 +154,13 @@ namespace ChatopsBot.Core.Commands
                     var hasBuilds = false;
                     foreach (var b in builds)
                     {
-                        command.Output.Add($"{b.Definition.Name} {b.BuildNumber} - *{b.Status}*");
+                        var s = $"{b.Definition.Name} {b.BuildNumber} - *{b.Status}*";
+                        if (b.StartTime.HasValue)
+                        {
+                            var runningTime = DateTime.UtcNow - b.StartTime.Value;
+                            s += $" (running for {runningTime:hh\\:mm\\:ss})";
+                        }
+                        command.Output.Add(s);
                         hasBuilds = true;
                     }
                     if (!hasBuilds) command.Output.Add("   no builds in queue");
