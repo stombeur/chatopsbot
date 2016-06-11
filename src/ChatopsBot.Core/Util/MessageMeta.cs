@@ -22,7 +22,7 @@ namespace ChatopsBot.Core.Util
             result.Message = message;
 
             //is it slack?
-            result.IsSlack = (message.To.ChannelId == "slack");
+            result.IsSlack = (message.To.ChannelId == "slack" || message.To.ChannelId == "emulator");
 
             result.FromName = message.From.Name;
 

@@ -199,7 +199,6 @@
     </Compile>
     <Compile Include="Luis\LuisClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Util\CustomSlackChannelData.cs" />
     <Compile Include="Util\DefaultFormatter.cs" />
     <Compile Include="Util\IReplyMessageFormatter.cs" />
     <Compile Include="Util\SlackFormatter.cs" />
@@ -224,6 +223,10 @@
     <ProjectReference Include="..\ChatopsBot.Commands\ChatopsBot.Commands.csproj">
       <Project>{71d7a0f4-e89d-4f53-b8da-00535133f0c9}</Project>
       <Name>ChatopsBot.Commands</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ChatopsBot.Slack\ChatopsBot.Slack.csproj">
+      <Project>{48a445b8-cbda-49fe-837b-a43b745058b3}</Project>
+      <Name>ChatopsBot.Slack</Name>
     </ProjectReference>
     <ProjectReference Include="..\CommandLine\CommandLine.csproj">
       <Project>{e1bd3c65-49c3-49e7-baba-c60980cb3f20}</Project>

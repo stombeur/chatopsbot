@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Bot.Connector;
 
 namespace ChatopsBot.Core.Util
@@ -12,24 +13,29 @@ namespace ChatopsBot.Core.Util
         public string TfsUser { get; set; }
         public const string TfsUserField = "tfsUser";
 
-        public bool TfsUserPrompt { get; set; }
-        public const string TfsUserPromptField = "tfsUserPrompt";
+        public DateTime? TfsUserPromptSince { get; set; }
+        public const string TfsUserPromptField = "tfsUserPromptSince";
 
         public static BuildBotState CreateState(Message message)
         {
             var state = new BuildBotState();
 
-            if (message.BotUserData != null)
-            {
-                state.DefaultProject = message.GetBotUserData<string>(BuildBotState.DefaultProjectField);
-                state.Aliases = message.GetBotUserData<List<CommandAlias>>(BuildBotState.AliasesField);
-                state.TfsUser = message.GetBotUserData<string>(BuildBotState.TfsUserField);
 
-                state.TfsUserPrompt = message.GetBotPerUserInConversationData<bool>(BuildBotState.TfsUserPromptField);
-            }
+                if (message.BotUserData != null)
+                {
+                    state.DefaultProject = message.GetBotUserData<string>(BuildBotState.DefaultProjectField);
+                    state.Aliases = message.GetBotUserData<List<CommandAlias>>(BuildBotState.AliasesField);
+                    state.TfsUser = message.GetBotUserData<string>(BuildBotState.TfsUserField);
+                    state.TfsUserPromptSince = message.GetBotUserData<DateTime?>(BuildBotState.TfsUserPromptField);
+                }
+
 
             if (state.Aliases == null) state.Aliases = new List<CommandAlias>();
             return state;
         }
+
+
     }
+
+
 }
